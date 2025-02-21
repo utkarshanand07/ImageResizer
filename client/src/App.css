@@ -1,42 +1,190 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+* {
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+.image-resizer-title,
+.file-input-label,
+.file-input-description,
+.resize-button,
+.resized-image-size,
+.download-link {
+  font-family: 'Montserrat', sans-serif;
+}
+
+
+/* Background Gradient */
+.image-resizer-container {
+  min-height: 100vh;
+  background: #0f172a;
+  padding: 24px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Card Styles */
+.image-resizer-card {
+  max-width: 800px;
+  background: #0f172a;
+  backdrop-filter: blur(10px);
+  border-radius: 20px;
+  border-width: 0.5px;
+  border-style: solid;
+  border-color: #eeeeee;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 32px;
   text-align: center;
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+/* Title */
+.image-resizer-title {
+  font-size: 32px;
+  background: #0f172a;
+  -webkit-background-clip: text;
+  font-family: 'Montserrat', sans-serif;
+  color: #eeeeee;
+  margin-bottom: 24px;
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.upload-icon {
+  font-size: 48px;
+  color: #0f172a;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
-  }
+/* File Input */
+.file-input-container {
+  border: 2px dashed #818cf8;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.3s ease-in-out;
+  background: linear-gradient(to right, #eef2ff, #f3e8ff);
 }
 
-.card {
-  padding: 2em;
+.file-input-container:hover {
+  border-color: #6366f1;
 }
 
-.read-the-docs {
-  color: #888;
+.file-input-label {
+  font-size: 16px;
+  font-weight: 500;
+  color: #4338ca;
+  font-family: 'Montserrat', sans-serif;
 }
+
+.file-input-description {
+  font-size: 14px;
+  color: #0f172a;
+  font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+}
+
+/* Button */
+.resize-button {
+  margin-top: 16px;
+  padding: 12px 24px;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  color: white;
+  font-family: 'Montserrat', sans-serif;
+  font-weight: 500;
+  border-radius: 12px;
+  box-shadow: 0px 5px 15px rgba(99, 102, 241, 0.3);
+  transition: transform 0.2s ease-in-out;
+  border: none;
+  cursor: pointer;
+}
+
+.resize-button:hover {
+  transform: scale(1.05);
+}
+
+.resize-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Resized Images */
+.resized-images-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-top: 24px;
+}
+
+.resized-image-card {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  transition: transform 0.2s ease-in-out;
+}
+
+.resized-image-card:hover {
+  transform: scale(1.05);
+}
+
+.resized-image-preview {
+  background: #f3f4f6;
+  padding: 16px;
+}
+
+/* .resized-image-preview img {
+  width: 100%;
+  height: auto;
+  object-fit: cover;
+  border-radius: 8px;
+} */
+
+.resized-image-info {
+  padding: 12px;
+  text-align: center;
+}
+
+.resized-image-size {
+  font-size: 14px;
+  font-weight: 500;
+  font-family: 'Montserrat', sans-serif;
+  color: #374151;
+}
+
+.download-link {
+  display: inline-block;
+  padding: 8px 12px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #4f46e5;
+  text-decoration: none;
+  border-radius: 8px;
+  font-family: 'Montserrat', sans-serif;
+  transition: background 0.2s ease-in-out;
+}
+
+.download-link:hover {
+  background: #eef2ff;
+}
+#file-input {
+  display: none;
+}
+/* Custom File Input Styling */
+.file-input-container {
+  border: 2px dashed #818cf8;
+  border-radius: 12px;
+  padding: 16px;
+  cursor: pointer;
+  transition: border-color 0.3s ease-in-out;
+  background: linear-gradient(to right, #eef2ff, #f3e8ff);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+.resized-image-preview img {
+    /* Fixed width for uniform size */
+  height: 150px;  /* Fixed height */
+  object-fit: contain; /* Ensures aspect ratio is maintained */
+  display: block;
+  margin: 0 auto; /* Centers the image */
+}
+

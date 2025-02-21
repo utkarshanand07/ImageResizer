@@ -1,180 +1,114 @@
-import { useState } from "react";
-import axios from "axios";
+import React, { useState } from "react";
+import { FaUpload } from "react-icons/fa";
+import "./App.css"; // Import the CSS file
 
-const App = () => {
-  const [image, setImage] = useState(null);
-  const [preview, setPreview] = useState(null);
+const ImageResizer = () => {
+  const [selectedFile, setSelectedFile] = useState(null);
   const [resizedImages, setResizedImages] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [showResized, setShowResized] = useState(false);
+  const [fileName, setFileName] = useState("");
 
-  const handleUpload = async () => {
-    if (!image) return alert("Please select an image.");
+  const dimensions = [
+    { width: 300, height: 250 },
+    { width: 728, height: 90 },
+    { width: 160, height: 600 },
+    { width: 300, height: 600 },
+  ];
+  
 
-    setLoading(true);
-    const formData = new FormData();
-    formData.append("image", image);
-
-    try {
-      const { data } = await axios.post("http://localhost:5000/upload", formData);
-      setResizedImages(data.images);
-    } catch (error) {
-      console.error("Error uploading image", error);
+  const handleFileChange = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      setSelectedFile(file);
+      setFileName(file.name);
+      setShowResized(false);
     }
-
-    setLoading(false);
   };
 
-  const postToTwitter = async () => {
-    try {
-      await axios.post("http://localhost:5000/post-to-twitter", { images: resizedImages });
-      alert("Images posted to Twitter!");
-    } catch (error) {
-      console.error("Error posting to Twitter", error);
-    }
+  const resizeImage = () => {
+    if (!selectedFile) return;
+    const reader = new FileReader();
+    reader.readAsDataURL(selectedFile);
+    reader.onload = (event) => {
+      const img = new Image();
+      img.src = event.target.result;
+      img.onload = () => {
+        const newImages = dimensions.map((dim) => {
+          const canvas = document.createElement("canvas");
+          canvas.width = dim.width;
+          canvas.height = dim.height;
+          const ctx = canvas.getContext("2d");
+          ctx.drawImage(img, 0, 0, dim.width, dim.height);
+          return {
+            url: canvas.toDataURL("image/png"),
+            width: dim.width,
+            height: dim.height,
+          };
+        });
+        setResizedImages(newImages);
+        setShowResized(true);
+      };
+    };
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.heading}>Image Resizer & Twitter Poster</h1>
+    <div className="image-resizer-container">
+      <div className="image-resizer-card">
+        <h1 className="image-resizer-title">Image Resizer</h1>
 
-      <div style={styles.card}>
-        <label style={styles.label}>Upload an Image</label>
-        <input
-          type="file"
-          accept="image/*"
-          onChange={(e) => {
-            setImage(e.target.files[0]);
-            setPreview(URL.createObjectURL(e.target.files[0]));
-          }}
-          style={styles.input}
-        />
-
-        {preview && <img src={preview} alt="Preview" style={styles.imagePreview} />}
+        <div>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="hidden"
+            id="file-input"
+          />
+          <label htmlFor="file-input" className="file-input-container">
+            <div>
+              <p className="file-input-label">{fileName}</p>
+              <FaUpload className="upload-icon" />
+              <p className="file-input-description">
+                Click to browse or drag and drop
+              </p>
+            </div>
+          </label>
+        </div>
 
         <button
-          onClick={handleUpload}
-          style={loading ? styles.buttonDisabled : styles.button}
-          disabled={loading}
+          onClick={resizeImage}
+          disabled={!selectedFile}
+          className="resize-button"
         >
-          {loading ? "Uploading..." : "Upload & Resize"}
+          Resize Image
         </button>
-      </div>
 
-      {resizedImages.length > 0 && (
-        <div style={styles.card}>
-          <h2 style={styles.subHeading}>Resized Images</h2>
-          <div style={styles.imageGrid}>
-            {resizedImages.map((img, index) => (
-              <img key={index} src={`http://localhost:5000/${img}`} alt="Resized" style={styles.image} />
+        {showResized && (
+          <div className="resized-images-container">
+            {resizedImages.map((image, index) => (
+              <div key={index} className="resized-image-card">
+                <div className="resized-image-preview">
+                <img src={image.url} alt="Resized" className="resized-image" />
+                </div>
+                <div className="resized-image-info">
+                  <p className="resized-image-size">
+                    {image.width} × {image.height}
+                  </p>
+                  <a
+                    href={image.url}
+                    download={`resized_${image.width}x${image.height}.png`}
+                    className="download-link"
+                  >
+                    Download
+                  </a>
+                </div>
+              </div>
             ))}
           </div>
-
-          <button onClick={postToTwitter} style={styles.buttonGreen}>
-            Post to Twitter
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 };
 
-// Inline styles
-const styles = {
-  container: {
-    minHeight: "100vh",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#f4f4f4",
-    padding: "20px",
-  },
-  heading: {
-    fontSize: "24px",
-    fontWeight: "bold",
-    marginBottom: "20px",
-    color: "#333",
-  },
-  card: {
-    backgroundColor: "#fff",
-    padding: "20px",
-    borderRadius: "8px",
-    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-    width: "100%",
-    maxWidth: "400px",
-    textAlign: "center",
-  },
-  label: {
-    fontSize: "16px",
-    fontWeight: "600",
-    display: "block",
-    marginBottom: "10px",
-    color: "#555",
-  },
-  input: {
-    width: "100%",
-    padding: "8px",
-    borderRadius: "5px",
-    border: "1px solid #ccc",
-    marginBottom: "15px",
-  },
-  imagePreview: {
-    width: "120px",
-    height: "120px",
-    objectFit: "cover",
-    borderRadius: "8px",
-    border: "1px solid #ddd",
-    marginBottom: "15px",
-  },
-  button: {
-    width: "100%",
-    backgroundColor: "#007bff",
-    color: "#fff",
-    padding: "10px",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "background 0.3s",
-  },
-  buttonDisabled: {
-    width: "100%",
-    backgroundColor: "#ccc",
-    color: "#666",
-    padding: "10px",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "not-allowed",
-  },
-  buttonGreen: {
-    width: "100%",
-    backgroundColor: "#28a745",
-    color: "#fff",
-    padding: "10px",
-    border: "none",
-    borderRadius: "5px",
-    fontSize: "16px",
-    cursor: "pointer",
-    transition: "background 0.3s",
-  },
-  subHeading: {
-    fontSize: "18px",
-    fontWeight: "600",
-    marginBottom: "10px",
-    color: "#333",
-  },
-  imageGrid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(2, 1fr)",
-    gap: "10px",
-    marginBottom: "15px",
-  },
-  image: {
-    width: "100%",
-    borderRadius: "5px",
-    border: "1px solid #ddd",
-  },
-};
-
-export default App;
+export default ImageResizer;
