@@ -1,0 +1,23 @@
+.tweet-button {
+    margin-top: 16px;
+    padding: 12px 24px;
+    background: linear-gradient(to right, #6366f1, #a855f7);
+    color: white;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 500;
+    border-radius: 12px;
+    box-shadow: 0px 5px 15px rgba(99, 102, 241, 0.3);
+    transition: transform 0.2s ease-in-out;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .tweet-button:hover {
+    transform: scale(1.05);
+  }
+  
+  .tweet-button.disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
