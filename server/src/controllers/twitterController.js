@@ -25,15 +25,19 @@ const loginWithTwitter = async (req, res) => {
       process.env.TWITTER_CALLBACK_URL
     );
 
+    // Store OAuth tokens in the session
     req.session.oauth_token = oauth_token;
     req.session.oauth_token_secret = oauth_token_secret;
+    await req.session.save(); // Ensure session is saved before redirecting
 
+    console.log("✅ Redirecting to Twitter:", url);
     res.redirect(url);
   } catch (error) {
     console.error("❌ Error generating auth link:", error);
     res.status(500).json({ error: "Authentication failed" });
   }
 };
+
 
 // Handle Twitter Callback
 const callback = async (req, res) => {

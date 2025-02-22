@@ -38,7 +38,9 @@ app.get("/api/twitter/login", async (req, res) => {
     console.log("🔵 Twitter Login Request Received");
     const authLink = await twitterClient.generateAuthLink(process.env.TWITTER_CALLBACK_URL);
     console.log("✅ Auth Link Generated:", authLink);
-    res.json(authLink);
+
+    // Redirect user to Twitter authentication page
+    res.redirect(authLink.url);
   } catch (error) {
     console.error("❌ Error generating auth link:", error);
     res.status(500).json({ error: "Failed to authenticate with Twitter" });
