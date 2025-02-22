@@ -28,7 +28,7 @@ app.use(
     secret: process.env.SESSION_SECRET || "fallback_secret",
     resave: false,
     saveUninitialized: true,
-    cookie: { secure: false }, // Set to true in production with HTTPS
+    cookie: { secure: true }, // Set to true in production with HTTPS
   })
 );
 

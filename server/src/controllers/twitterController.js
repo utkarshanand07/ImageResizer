@@ -2,7 +2,7 @@ import { TwitterApi } from "twitter-api-v2";
 import axios from "axios";
 import dotenv from "dotenv";
 
-dotenv.config(); // Load environment variables
+dotenv.config();
 
 // Ensure API keys are available
 if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
@@ -10,12 +10,10 @@ if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
   process.exit(1); // Stop execution if keys are missing
 }
 
-// Twitter API Client with OAuth 1.0
+// Twitter API Client (App-Level)
 const twitterClient = new TwitterApi({
   appKey: process.env.TWITTER_API_KEY,
   appSecret: process.env.TWITTER_API_SECRET,
-  accessToken: process.env.TWITTER_ACCESS_TOKEN,
-  accessSecret: process.env.TWITTER_ACCESS_SECRET,
 });
 
 // Twitter OAuth Login
@@ -25,10 +23,10 @@ const loginWithTwitter = async (req, res) => {
       process.env.TWITTER_CALLBACK_URL
     );
 
-    // Store OAuth tokens in the session
+    // Store OAuth tokens in session
     req.session.oauth_token = oauth_token;
     req.session.oauth_token_secret = oauth_token_secret;
-    await req.session.save(); // Ensure session is saved before redirecting
+    req.session.save(); // Ensure session saves before redirect
 
     console.log("✅ Redirecting to Twitter:", url);
     res.redirect(url);
@@ -38,7 +36,6 @@ const loginWithTwitter = async (req, res) => {
   }
 };
 
-
 // Handle Twitter Callback
 const callback = async (req, res) => {
   const { oauth_token, oauth_verifier } = req.query;
@@ -47,20 +44,35 @@ const callback = async (req, res) => {
     return res.status(400).json({ error: "Missing tokens" });
   }
 
+  console.log("Stored Session:", req.session);
+
+  // Ensure session has stored the oauth_token_secret
+  if (!req.session.oauth_token || !req.session.oauth_token_secret) {
+    console.error("❌ Session missing stored OAuth tokens");
+    return res.status(400).json({ error: "Session expired. Please try logging in again." });
+  }
+
   try {
+    // Exchange oauth_token and oauth_verifier for access token
     const loggedClient = await twitterClient.loginWithOAuth1({
       oauth_token,
-      oauth_token_secret: req.session.oauth_token_secret,
+      oauth_token_secret: req.session.oauth_token_secret,  // Retrieve from session
       oauth_verifier,
     });
 
+    // Store user session details
     req.session.user = {
       accessToken: loggedClient.accessToken,
       accessSecret: loggedClient.accessSecret,
       username: loggedClient.screenName,
     };
 
-    res.redirect(process.env.FRONTEND_URL);
+    await req.session.save(); // Ensure session is saved before redirecting
+
+    console.log("✅ User logged in successfully:", req.session.user);
+    console.log("Stored Session:", req.session);
+    // Redirect to frontend after successful login
+    res.redirect(process.env.FRONTEND_URL || "/");
   } catch (error) {
     console.error("❌ Login failed:", error);
     res.status(500).json({ error: "Login failed" });
