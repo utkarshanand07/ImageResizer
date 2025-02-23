@@ -15,15 +15,16 @@ export const TweetProvider = ({ children }) => {
       alert("⚠️ You need to log in first!");
       return;
     }
-  
+
     setLoading(true);
     try {
       const response = await axios.post(
+        //"http://localhost:5000/api/twitter/tweet",
         "https://imageresizer-sk2h.onrender.com/api/twitter/tweet",
         { imageUrls, tweetText },
-        { withCredentials: true }  // ✅ Include session cookies
+        { withCredentials: true }
       );
-  
+
       if (response.data.success) {
         setTweeted(true);
         setMessage("✅ Tweet posted successfully!");
@@ -36,7 +37,6 @@ export const TweetProvider = ({ children }) => {
     }
     setLoading(false);
   };
-  
 
   return (
     <TweetContext.Provider value={{ tweetImages, loading, tweeted, message }}>

@@ -33,7 +33,7 @@ app.use(
     saveUninitialized: true,
     store: new MemoryStoreSession({ checkPeriod: 86400000 }),
     cookie: { 
-      secure: false, // ✅ Set to `false` for localhost
+      secure: false, // ✅ Set to false for localhost
       httpOnly: true, 
       sameSite: "lax", // ✅ Allow cross-site redirects
       maxAge: 86400000 
@@ -49,19 +49,18 @@ app.get("/api/twitter/login", async (req, res) => {
     const authLink = await twitterClient.generateAuthLink(process.env.TWITTER_CALLBACK_URL);
     console.log("✅ Auth Link Generated:", authLink);
 
+    // Store oauth_token_secret in session
     req.session.oauth_token_secret = authLink.oauth_token_secret;
     req.session.oauth_token = authLink.oauth_token;
 
-    // Debug: Check if session is actually being set
-    console.log("Before session save:", req.session);
-
+    // Ensure session is saved before redirecting
     req.session.save((err) => {
       if (err) {
         console.error("❌ Session Save Error:", err);
         return res.status(500).json({ error: "Session save failed" });
       }
-      console.log("After session save:", req.session);
-      console.log("🟢 Session ID:", req.sessionID);
+      console.log("🟢 Session Data Stored (After Save):", req.session);
+      console.log("🟢 Session ID:", req.sessionID); // Debugging
 
       res.redirect(authLink.url);
     });
@@ -85,7 +84,7 @@ app.get("/api/twitter/callback", (req, res) => {
     return res.status(400).json({ error: "Session expired. Please try logging in again." });
   }
 
-  res.redirect(`${process.env.FRONTEND_URL}/tweet`);
+  res.redirect("https://imageresizer-sk2h.onrender.com/tweet");
 });
 
 // ✅ Twitter Routes (For Additional API Handling)
