@@ -1,9 +1,6 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-const server_url = import.meta.env.NODE_ENV === "development" ? "http://localhost:5000" : import.meta.env.SERVER_URL;
-
-console.log(server_url);
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
@@ -12,8 +9,8 @@ export const AuthProvider = ({ children }) => {
   // ✅ Fetch user session on mount
   useEffect(() => {
     axios
-      .get(`${server_url}/api/twitter/user`, {
-        withCredentials: true, // ✅ Ensures session cookies are sent
+      .get("https://imageresizer-sk2h.onrender.com/api/twitter/user", {
+        withCredentials: true,
       })
       .then((res) => {
         if (res.data.user) {
@@ -28,10 +25,10 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Login function redirects to backend
   const login = () => {
-    window.location.href = `${server_url}/api/twitter/login`;
+    window.location.href = "https://imageresizer-sk2h.onrender.com/api/twitter/login";
     setTimeout(() => {
       axios
-        .get(`${server_url}/api/twitter/user`, { withCredentials: true })
+        .get("https://imageresizer-sk2h.onrender.com/api/twitter/user", { withCredentials: true })
         .then((res) => setUser(res.data.user))
         .catch(() => setUser(null));
     }, 3000); // Delay to allow session to be created
@@ -39,7 +36,7 @@ export const AuthProvider = ({ children }) => {
 
   // ✅ Logout function clears user session
   const logout = async () => {
-    await axios.post(`${server_url}/api/twitter/logout`, {}, { withCredentials: true });
+    await axios.post("https://imageresizer-sk2h.onrender.com/api/twitter/logout", {}, { withCredentials: true });
     setUser(null);
   };
 
