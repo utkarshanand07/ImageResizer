@@ -21,16 +21,23 @@ console.log("TWITTER_CALLBACK_URL:", process.env.TWITTER_CALLBACK_URL || "Not Fo
 app.use(cors({ origin: "*", credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
+app.set("trust proxy", 1);
 
-// Session setup with MemoryStore (prevents session loss)
+// ✅ Corrected MemoryStore instantiation
 const MemoryStoreSession = MemoryStore(session);
+
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "fallback_secret",
     resave: false,
     saveUninitialized: true,
-    store: new MemoryStoreSession({ checkPeriod: 86400000 }), // 24 hours
-    cookie: { secure: process.env.NODE_ENV === "production", httpOnly: true },
+    store: new MemoryStoreSession({ checkPeriod: 86400000 }),
+    cookie: { 
+      secure: false, // ✅ Set to `false` for localhost
+      httpOnly: true, 
+      sameSite: "lax", // ✅ Allow cross-site redirects
+      maxAge: 86400000 
+    }
   })
 );
 
@@ -45,12 +52,18 @@ app.get("/api/twitter/login", async (req, res) => {
     // Store oauth_token_secret in session
     req.session.oauth_token_secret = authLink.oauth_token_secret;
     req.session.oauth_token = authLink.oauth_token;
-    req.session.save(); // Ensure session is saved
 
-    console.log("🟢 Session Data Stored:", req.session);
+    // Ensure session is saved before redirecting
+    req.session.save((err) => {
+      if (err) {
+        console.error("❌ Session Save Error:", err);
+        return res.status(500).json({ error: "Session save failed" });
+      }
+      console.log("🟢 Session Data Stored (After Save):", req.session);
+      console.log("🟢 Session ID:", req.sessionID); // Debugging
 
-    // Redirect user to Twitter authentication page
-    res.redirect(authLink.url);
+      res.redirect(authLink.url);
+    });
   } catch (error) {
     console.error("❌ Error generating auth link:", error);
     res.status(500).json({ error: "Failed to authenticate with Twitter" });
@@ -58,30 +71,20 @@ app.get("/api/twitter/login", async (req, res) => {
 });
 
 // ✅ Twitter Callback Route
-app.get("/api/twitter/callback", async (req, res) => {
-  try {
-    const { oauth_token, oauth_verifier } = req.query;
+app.get("/api/twitter/callback", (req, res) => {
+  console.log("🔄 Callback Received:", req.query);
+  console.log("🟢 Session ID (callback):", req.sessionID);
+  console.log("🟢 Stored Session Data:", req.session);
 
-    console.log("🔄 Callback Received:", req.query);
-    console.log("🟢 Stored Session Data:", req.session);
+  // Manually check if cookies exist
+  console.log("🔍 Cookies Received:", req.headers.cookie);
 
-    // Retrieve the stored secret
-    const oauth_token_secret = req.session.oauth_token_secret;
-
-    if (!oauth_token_secret) {
-      throw new Error("Session expired. No token secret found.");
-    }
-
-    // Exchange for access token
-    const accessToken = await twitterClient.getOAuthAccessToken(oauth_token, oauth_token_secret, oauth_verifier);
-
-    console.log("✅ Access Token Received:", accessToken);
-
-    res.json({ message: "Login successful", accessToken });
-  } catch (error) {
-    console.error("❌ Twitter callback error:", error);
-    res.status(400).json({ error: "Session expired. Please try logging in again." });
+  if (!req.session.oauth_token_secret) {
+    console.error("❌ Session expired: No token secret found.");
+    return res.status(400).json({ error: "Session expired. Please try logging in again." });
   }
+
+  res.json({ message: "Session is working!", session: req.session });
 });
 
 // ✅ Twitter Routes (For Additional API Handling)
