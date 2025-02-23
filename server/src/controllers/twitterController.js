@@ -4,9 +4,8 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
-const client_url = process.env.NODE_ENV === "development" ? "http://localhost:5000" : process.env.CLIENT_URL;
- 
-console.log(client_url);
+const client_url = process.env.CLIENT_URL;
+
 // Ensure API keys are available
 if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
   console.error("❌ Missing Twitter API credentials!");

@@ -2,8 +2,6 @@ import React, { createContext, useContext, useState } from "react";
 import axios from "axios";
 import { useAuth } from "./AuthContext";
 
-const server_url = import.meta.env.NODE_ENV === "development" ? "http://localhost:5000" : import.meta.env.SERVER_URL;
-
 const TweetContext = createContext();
 
 export const TweetProvider = ({ children }) => {
@@ -21,7 +19,7 @@ export const TweetProvider = ({ children }) => {
     setLoading(true);
     try {
       const response = await axios.post(
-        `${server_url}/api/twitter/tweet`,
+        "https://imageresizer-sk2h.onrender.com/api/twitter/tweet",
         { imageUrls, tweetText },
         { withCredentials: true }  // ✅ Include session cookies
       );
