@@ -1,0 +1,97 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700&display=swap');
+
+* {
+  font-family: 'Montserrat', sans-serif;
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+/* Background Gradient */
+.tweet-container {
+  min-height: 100vh;
+  background: #0f172a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 24px;
+}
+
+/* Card Styling */
+.tweet-card {
+  width: 100%;
+  max-width: 500px;
+  background: #0f172a;
+  backdrop-filter: blur(10px);
+  border-radius: 15px;
+  border: 1px solid #eeeeee;
+  box-shadow: 0px 10px 30px rgba(0, 0, 0, 0.1);
+  padding: 24px;
+  text-align: center;
+}
+
+/* Title */
+.tweet-title {
+  font-size: 24px;
+  font-weight: 600;
+  color: #eeeeee;
+  margin-bottom: 16px;
+}
+
+/* Tweet Input */
+.tweet-input {
+  width: 100%;
+  height: 100px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  resize: none;
+  margin-bottom: 10px;
+  background: #1e293b;
+  color: #eeeeee;
+}
+
+/* Image URL Input */
+.tweet-url-input {
+  width: 100%;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  margin-bottom: 10px;
+  background: #1e293b;
+  color: #eeeeee;
+}
+
+/* Tweet Button */
+.tweet-button {
+  width: 100%;
+  padding: 12px;
+  font-size: 18px;
+  font-weight: 500;
+  color: white;
+  background: linear-gradient(to right, #6366f1, #a855f7);
+  border: none;
+  border-radius: 12px;
+  box-shadow: 0px 5px 15px rgba(99, 102, 241, 0.3);
+  transition: transform 0.2s ease-in-out;
+  cursor: pointer;
+}
+
+.tweet-button:hover {
+  transform: scale(1.05);
+}
+
+.tweet-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Success or Error Messages */
+.tweet-message {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #eeeeee;
+}

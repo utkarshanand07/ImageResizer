@@ -4,10 +4,13 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+const client_url = process.env.NODE_ENV === "development" ? "http://localhost:5000" : process.env.CLIENT_URL;
+ 
+console.log(client_url);
 // Ensure API keys are available
 if (!process.env.TWITTER_API_KEY || !process.env.TWITTER_API_SECRET) {
   console.error("❌ Missing Twitter API credentials!");
-  process.exit(1); // Stop execution if keys are missing
+  process.exit(1);
 }
 
 // Twitter API Client (App-Level)
@@ -16,19 +19,19 @@ const twitterClient = new TwitterApi({
   appSecret: process.env.TWITTER_API_SECRET,
 });
 
-// Twitter OAuth Login
+// 🔹 Twitter OAuth Login
 const loginWithTwitter = async (req, res) => {
   try {
     const { url, oauth_token, oauth_token_secret } = await twitterClient.generateAuthLink(
       process.env.TWITTER_CALLBACK_URL
     );
 
-    // Store OAuth tokens in session
     req.session.oauth_token = oauth_token;
     req.session.oauth_token_secret = oauth_token_secret;
-    req.session.save(); // Ensure session saves before redirect
 
+    await req.session.save();  // ✅ Ensure session saves before redirecting
     console.log("✅ Redirecting to Twitter:", url);
+    
     res.redirect(url);
   } catch (error) {
     console.error("❌ Error generating auth link:", error);
@@ -36,7 +39,7 @@ const loginWithTwitter = async (req, res) => {
   }
 };
 
-// Handle Twitter Callback
+// 🔹 Handle Twitter Callback
 const callback = async (req, res) => {
   const { oauth_token, oauth_verifier } = req.query;
 
@@ -44,9 +47,6 @@ const callback = async (req, res) => {
     return res.status(400).json({ error: "Missing tokens" });
   }
 
-  console.log("Stored Session:", req.session);
-
-  // Ensure session has stored the oauth_token_secret
   if (!req.session.oauth_token || !req.session.oauth_token_secret) {
     console.error("❌ Session missing stored OAuth tokens");
     return res.status(400).json({ error: "Session expired. Please try logging in again." });
@@ -56,7 +56,7 @@ const callback = async (req, res) => {
     // Exchange oauth_token and oauth_verifier for access token
     const loggedClient = await twitterClient.loginWithOAuth1({
       oauth_token,
-      oauth_token_secret: req.session.oauth_token_secret,  // Retrieve from session
+      oauth_token_secret: req.session.oauth_token_secret,
       oauth_verifier,
     });
 
@@ -67,19 +67,28 @@ const callback = async (req, res) => {
       username: loggedClient.screenName,
     };
 
-    await req.session.save(); // Ensure session is saved before redirecting
+    await req.session.save();  // ✅ Ensure session is saved before redirecting
 
     console.log("✅ User logged in successfully:", req.session.user);
-    console.log("Stored Session:", req.session);
-    // Redirect to frontend after successful login
-    res.redirect(process.env.FRONTEND_URL || "/");
+    res.redirect(`${client_url}/tweet`);
   } catch (error) {
     console.error("❌ Login failed:", error);
     res.status(500).json({ error: "Login failed" });
   }
 };
 
-// Upload Image to Twitter
+// 🔹 Get Authenticated User
+const getUser = (req, res) => {
+  console.log("🟢 Checking session user:", req.session.user);
+
+  if (!req.session.user) {
+    return res.status(401).json({ message: "Not logged in" });
+  }
+
+  res.json({ user: req.session.user });
+};
+
+// 🔹 Upload Image to Twitter
 const uploadImageToTwitter = async (userClient, imageUrl) => {
   try {
     const imageResponse = await axios.get(imageUrl, { responseType: "arraybuffer" });
@@ -91,7 +100,7 @@ const uploadImageToTwitter = async (userClient, imageUrl) => {
   }
 };
 
-// Tweet Images
+// 🔹 Tweet Images
 const tweetImages = async (req, res) => {
   const { imageUrls, tweetText } = req.body;
   const userSession = req.session.user;
@@ -108,9 +117,17 @@ const tweetImages = async (req, res) => {
       accessSecret: userSession.accessSecret,
     });
 
-    const mediaIds = await Promise.all(imageUrls.map((url) => uploadImageToTwitter(userClient, url)));
+    let mediaIds = [];
+    if (imageUrls?.length) {
+      mediaIds = await Promise.all(imageUrls.map((url) => uploadImageToTwitter(userClient, url)));
+    }
 
-    const tweet = await userClient.v2.tweet({ text: tweetText, media: { media_ids: mediaIds } });
+    const tweetPayload = { text: tweetText };
+    if (mediaIds.length) {
+      tweetPayload.media = { media_ids: mediaIds };
+    }
+
+    const tweet = await userClient.v2.tweet(tweetPayload);
 
     res.json({ success: true, tweetId: tweet.data.id });
   } catch (error) {
@@ -119,4 +136,4 @@ const tweetImages = async (req, res) => {
   }
 };
 
-export { loginWithTwitter, callback, tweetImages };
+export { loginWithTwitter, callback, tweetImages, getUser };

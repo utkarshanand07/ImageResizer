@@ -49,18 +49,19 @@ app.get("/api/twitter/login", async (req, res) => {
     const authLink = await twitterClient.generateAuthLink(process.env.TWITTER_CALLBACK_URL);
     console.log("✅ Auth Link Generated:", authLink);
 
-    // Store oauth_token_secret in session
     req.session.oauth_token_secret = authLink.oauth_token_secret;
     req.session.oauth_token = authLink.oauth_token;
 
-    // Ensure session is saved before redirecting
+    // Debug: Check if session is actually being set
+    console.log("Before session save:", req.session);
+
     req.session.save((err) => {
       if (err) {
         console.error("❌ Session Save Error:", err);
         return res.status(500).json({ error: "Session save failed" });
       }
-      console.log("🟢 Session Data Stored (After Save):", req.session);
-      console.log("🟢 Session ID:", req.sessionID); // Debugging
+      console.log("After session save:", req.session);
+      console.log("🟢 Session ID:", req.sessionID);
 
       res.redirect(authLink.url);
     });
@@ -84,7 +85,7 @@ app.get("/api/twitter/callback", (req, res) => {
     return res.status(400).json({ error: "Session expired. Please try logging in again." });
   }
 
-  res.json({ message: "Session is working!", session: req.session });
+  res.redirect(`${process.env.FRONTEND_URL}/tweet`);
 });
 
 // ✅ Twitter Routes (For Additional API Handling)
