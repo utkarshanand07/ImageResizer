@@ -1,8 +1,9 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import axios from "axios";
 
-const server_url = import.meta.env.NODE_ENV === development ? "http://localhost:5000" : import.meta.env.SERVER_URL;
+const server_url = import.meta.env.NODE_ENV === "development" ? "http://localhost:5000" : import.meta.env.SERVER_URL;
 
+console.log(server_url);
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
